@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# localc
+*.ovpn
+*.txt
+
 # Distribution / packaging
 .Python
 build/
