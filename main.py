@@ -29,19 +29,21 @@ def chenge_config_auth_type(CONFIG):
                     new_config_data += f"auth-user-pass ./{TEMP_FILE_NAME}\n"
                 else:
                     new_config_data += line
-    except FileNotFoundError:
-        print("Config file not found.")
+    except FileNotFoundError as err:
+        err.strerror = "Config file not found"
+        raise
 
     new_config_name = f"temp_{CONFIG}"
-    remove_file(new_config_name)
+    remove_files(new_config_name)
     with open(new_config_name, "a+") as new_config_file:
         new_config_file.write(new_config_data)
     return new_config_name
 
 
-def remove_file(new_config_name):
-    if os.path.isfile(new_config_name):
-        os.remove(new_config_name)
+def remove_files(*files):
+    for file_name in files:
+        if os.path.isfile(file_name):
+            os.remove(file_name)
     return None
 
 
@@ -58,8 +60,7 @@ def create_temp_file(user, passwd, TEMP_FILE_NAME):
     Returns:
             None: nothing
     """
-    if os.path.isfile(TEMP_FILE_NAME):
-        os.remove(TEMP_FILE_NAME)
+    remove_files(TEMP_FILE_NAME)
     with open(TEMP_FILE_NAME, "a+") as temp_file:
         temp_line = f"{user}\n{passwd}"
         temp_file.write(temp_line)
@@ -68,7 +69,8 @@ def create_temp_file(user, passwd, TEMP_FILE_NAME):
 
 def get_conn_status(user, passwd, output):
     """Gets command output then
-    checks either failed or no
+    checks either connection failed
+    or no
 
     Args:
             user (str): username
@@ -128,13 +130,13 @@ def run(CONFIG, COMBO, TEMP_FILE_NAME):
                     elif status == False:
                         print("---> Failed!", end="\n\n")
                         break
-    except FileNotFoundError:
-        print("Combo not found.")
+    except FileNotFoundError as err:
+        err.strerror = "Combo file not found"
+        raise
 
 
 if __name__ == "__main__":
     TEMP_FILE_NAME = "temp.txt"
     CONFIG = chenge_config_auth_type(CONFIG)
     run(CONFIG, COMBO, TEMP_FILE_NAME)
-    remove_file(TEMP_FILE_NAME)
-    remove_file(CONFIG)
+    remove_files(TEMP_FILE_NAME, CONFIG)
