@@ -4,8 +4,8 @@ import sys
 
 assert (
     len(sys.argv) == 3
-), "Invalid arguments\n\
-	 Usage: pass_checker.py <CONFIG> <COMBO>"
+), f"Invalid arguments\n\
+	 Usage: {__file__} <CONFIG> <COMBO>"
 
 CONFIG = sys.argv[1]
 COMBO = sys.argv[2]
