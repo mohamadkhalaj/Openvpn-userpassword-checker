@@ -10,6 +10,18 @@ assert (
 CONFIG = sys.argv[1]
 COMBO = sys.argv[2]
 
+GREEN = "\033[92m"
+RED = "\033[91m"
+END = "\033[0m"
+def colored_print(sig, statement, *colors):
+    cc = ""
+    cc = "".join([color for color in colors])
+    print(
+        "{sig}{mix}{statement}{end}".format(
+            sig=sig, mix=cc, end=END, statement=statement
+        ),
+        end="\n\n"
+    )
 
 def chenge_config_auth_type(CONFIG):
     """creates temp config file for
@@ -125,10 +137,10 @@ def run(CONFIG, COMBO, TEMP_FILE_NAME):
                     output = x.stdout.readline()
                     status = get_conn_status(user, passwd, output)
                     if status:
-                        print("---> Successfully Connected!", end="\n\n")
+                        colored_print("---> ", "Successfully Connected!", GREEN)
                         break
                     elif status == False:
-                        print("---> Failed!", end="\n\n")
+                        colored_print("---> ", "Failed!", RED)
                         break
     except FileNotFoundError as err:
         err.strerror = "Combo file not found"
